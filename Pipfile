@@ -7,6 +7,9 @@ verify_ssl = true
 
 [packages]
 python-dotenv = "*"
+pyperclip = "*"
+beautifulsoup4 = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"
