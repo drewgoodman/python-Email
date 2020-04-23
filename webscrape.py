@@ -1,13 +1,12 @@
 
 # Sends the first 12 articles on ScreenRant's homepage in an email.
 
-import smtplib, os
+import smtplib, os, requests
 from dotenv import load_dotenv
 from datetime import date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-import requests
 from bs4 import BeautifulSoup
 
 
@@ -18,15 +17,18 @@ res = requests.get("http://screenrant.com", headers=headers)
 res.raise_for_status()
 
 soup = BeautifulSoup(res.text, 'html.parser')
-
 articles = soup.find_all(class_="bc-title-link", limit=12)
-
 date = date.today().strftime("%B %d")
-# email_content = "Subject: ScreenRant Articles for " + date + "\n\nToday"
+
+sender_email = os.environ.get('SENDER_EMAIL')
+sender_password = os.environ.get('SENDER_PASSWORD')
+receiver_email = os.environ.get('RECEIVER_EMAIL')
+
+
 msg = MIMEMultipart('alternative')
 msg['Subject'] = "ScreenRant Articles for " + date + "\n\nToday"
-msg['From'] = "Your Python Helper"
-msg['To'] = "Whomever It May Concern"
+msg['From'] = sender_email
+msg['To'] = receiver_email
 
 content_text = "Here are your daily ScreenRant Articles:\n\n"
 content_html = """\
@@ -49,14 +51,9 @@ content_html += "</ol></body></html>"
 msg.attach(MIMEText(content_text,"plain"))
 msg.attach(MIMEText(content_html,"html"))
 
-sender_email = os.environ.get('SENDER_EMAIL')
-sender_password = os.environ.get('SENDER_PASSWORD')
-receiver_email = os.environ.get('RECEIVER_EMAIL')
-
 
 smtpObj = smtplib.SMTP_SSL('smtp.gmail.com', 465)
 smtpObj.ehlo()
 smtpObj.login(sender_email, sender_password)
-# smtpObj.sendmail(sender_email, receiver_email, email_content.encode("utf-8"))
 smtpObj.sendmail(sender_email, receiver_email, msg.as_string())
 smtpObj.quit()
